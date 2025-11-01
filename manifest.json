@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "PixGuard AI",
+  "version": "1.0.0",
+  "description": "Invisible armor for your photos — stop AI morphing before it starts.",
+
+  "icons": {
+    "16": "public/icons/icon-16.png",
+    "48": "public/icons/icon-48.png",
+    "128": "public/icons/icon-128.png"
+  },
+
+  "permissions": [
+    "storage",
+    "scripting",
+    "downloads",
+    "activeTab"
+  ],
+
+  "host_permissions": ["<all_urls>"],
+
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+
+  "action": {
+    "default_icon": {
+      "16": "public/icons/icon-16.png",
+      "48": "public/icons/icon-48.png",
+      "128": "public/icons/icon-128.png"
+    },
+    "default_popup": "src/ui/popup.html",
+    "default_title": "PixGuard AI"
+  },
+
+  "options_page": "src/ui/options.html", 
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["build/content/content-script.js"],
+      "run_at": "document_end"
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "models/*",
+        "src/ui/popup.js",
+        "src/ui/verify.js",
+        "src/ui/verify.html",
+        "assets/masks/light.json",
+        "assets/masks/balanced.json",
+        "assets/masks/strong.json"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

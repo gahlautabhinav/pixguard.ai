@@ -1,0 +1,26 @@
+{
+  "name": "pixguard-ai",
+  "version": "1.0.0",
+  "description": "PixGuard AI — Invisible Armor for Social Media Images",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/content/content-script.js src/lib/protect.js --bundle --outdir=build --sourcemap",
+    "watch": "esbuild src/content/content-script.js src/lib/protect.js --bundle --outdir=build --watch"
+  },
+  "keywords": [
+    "chrome-extension",
+    "ai",
+    "privacy",
+    "image-protection",
+    "pixguard"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "face-api.js": "^0.22.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.11"
+  }
+}

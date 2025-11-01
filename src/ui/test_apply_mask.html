@@ -1,0 +1,83 @@
+<!-- src/ui/test_apply_mask.html -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PixGuard — Mask tester</title>
+<style>
+canvas { max-width: 320px; display:block; margin: 8px 0; border:1px solid #ddd; }
+.controls { margin-bottom:12px; }
+</style>
+</head>
+<body>
+<h2>PixGuard — Adversarial Mask Tester</h2>
+<div class="controls">
+  <input type="file" id="file" accept="image/*">
+  <select id="mode"><option>light</option><option selected>balanced</option><option>strong</option></select>
+  <button id="apply">Apply Mask</button>
+</div>
+
+<div>
+  <strong>Original</strong>
+  <canvas id="orig"></canvas>
+  <strong>Perturbed</strong>
+  <canvas id="out"></canvas>
+  <strong>Abs Diff</strong>
+  <canvas id="diff"></canvas>
+  <pre id="metrics"></pre>
+</div>
+
+<script type="module">
+import { applyUniversalMask } from '../../lib/adversarial.js';
+
+const fileInput = document.getElementById('file');
+const applyBtn = document.getElementById('apply');
+const modeSelect = document.getElementById('mode');
+const orig = document.getElementById('orig');
+const out = document.getElementById('out');
+const diff = document.getElementById('diff');
+const metrics = document.getElementById('metrics');
+
+async function loadImageToCanvas(file, canvas) {
+  const bitmap = await createImageBitmap(file);
+  canvas.width = bitmap.width; canvas.height = bitmap.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0);
+  return canvas;
+}
+
+applyBtn.addEventListener('click', async () => {
+  if (!fileInput.files[0]) { alert('Choose an image file first'); return; }
+  await loadImageToCanvas(fileInput.files[0], orig);
+  const ctx = orig.getContext('2d');
+  const imgData = ctx.getImageData(0,0,orig.width, orig.height);
+  metrics.textContent = 'Applying mask...';
+  try {
+    const mode = modeSelect.value;
+    const outImgData = await applyUniversalMask(imgData, mode);
+    out.width = outImgData.width; out.height = outImgData.height;
+    out.getContext('2d').putImageData(outImgData, 0, 0);
+
+    // compute absolute diff and MSE
+    diff.width = imgData.width; diff.height = imgData.height;
+    const dctx = diff.getContext('2d');
+    const diffData = dctx.createImageData(diff.width, diff.height);
+    let mse = 0;
+    for (let i=0;i<imgData.data.length;i+=4) {
+      const dr = Math.abs(outImgData.data[i+0] - imgData.data[i+0]);
+      const dg = Math.abs(outImgData.data[i+1] - imgData.data[i+1]);
+      const db = Math.abs(outImgData.data[i+2] - imgData.data[i+2]);
+      diffData.data[i+0] = dr; diffData.data[i+1] = dg; diffData.data[i+2] = db; diffData.data[i+3] = 255;
+      mse += (dr*dr + dg*dg + db*db);
+    }
+    mse /= (imgData.width * imgData.height * 3);
+    dctx.putImageData(diffData, 0, 0);
+    metrics.textContent = `Mode: ${mode}  —  MSE: ${mse.toFixed(3)}`;
+  } catch (err) {
+    metrics.textContent = 'Error: ' + err.message;
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>

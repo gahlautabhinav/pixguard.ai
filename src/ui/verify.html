@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify PixGuard Watermark</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #fafafa;
+        color: #111;
+        padding: 30px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      #dropZone {
+        border: 2px dashed #bbb;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        margin-top: 20px;
+        transition: border-color 0.3s;
+      }
+      #dropZone:hover {
+        border-color: #06b6d4;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 12px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Verify <strong>PixGuard</strong> Watermark</h1>
+
+    <div id="dropZone">
+      Drop an image here or
+      <input type="file" id="fileInput" accept="image/*" />
+    </div>
+
+    <div id="result"></div>
+
+    <!-- ✅ load as ES module -->
+    <script type="module">
+      import { extractDCTWatermark } from "../lib/dct.js";
+
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+      const result = document.getElementById("result");
+
+      async function handleFile(file) {
+        if (!file) return;
+        result.innerHTML = "🔍 Analyzing image...";
+
+        try {
+          const blob = new Blob([await file.arrayBuffer()]);
+          const img = await createImageBitmap(blob);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+          // 🧩 Run the watermark extraction
+          if (typeof extractDCTWatermark !== "function") {
+            result.innerHTML =
+              "❌ extractDCTWatermark not available. Make sure dct.js is bundled.";
+            return;
+          }
+
+          const { bits, approxString, confidence } = extractDCTWatermark(imgData, 64);
+
+          result.innerHTML = `
+            <h3>✅ Verified PixGuard Image</h3>
+            <p><b>Confidence:</b> ${confidence}%</p>
+            <p><b>Bits:</b> ${bits.slice(0, 64).join("")}</p>
+            <p><b>Decoded:</b> ${approxString || "(no readable string)"}</p>
+          `;
+        } catch (err) {
+          console.error("Verification failed:", err);
+          result.innerHTML = `<p style="color:red;">❌ Verification failed: ${err.message}</p>`;
+        }
+      }
+
+      dropZone.addEventListener("dragover", (e) => e.preventDefault());
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        handleFile(file);
+      });
+
+      fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+    </script>
+  </body>
+</html>

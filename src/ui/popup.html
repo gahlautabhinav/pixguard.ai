@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PixGuard AI</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 14px;
+        width: 300px;
+        background: #fff;
+        color: #111;
+      }
+      h2 {
+        margin: 0 0 8px 0;
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .btn {
+        display: block;
+        width: 100%;
+        border: none;
+        border-radius: 6px;
+        padding: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+      .enabled {
+        background: #16a34a;
+        color: #fff;
+      }
+      .disabled {
+        background: #d1d5db;
+        color: #111;
+      }
+      #verifyZone {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        margin-top: 12px;
+        transition: border-color 0.3s;
+      }
+      #verifyZone:hover {
+        border-color: #0ea5e9;
+      }
+      #verifyResult {
+        margin-top: 10px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .protected {
+        color: #16a34a;
+      }
+      .not-protected {
+        color: #dc2626;
+      }
+      small {
+        color: #777;
+      }
+    </style>
+  </head>
+  <body>
+  <h2>🛡️ PixGuard AI</h2>
+  <button id="enableBtn" class="btn disabled">Enable on this site</button>
+
+  <div id="siteInfo"><small>Site: loading...</small></div>
+
+  <div id="protectionInfo" style="margin-top:10px;">
+    No protections logged yet.
+  </div>
+
+  <!-- ✅ New Download Button -->
+  <button id="downloadBtn" class="btn download" style="display:none; background:#0366d6; color:#fff;">
+    ⬇️ Download Last Protected Image
+  </button>
+
+  <!-- ✅ Verification Section -->
+  <div id="verifyZone">
+    <b>Verify an Image</b><br />
+    <input type="file" id="verifyInput" accept="image/*" />
+    <div id="verifyResult"></div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+
+</html>

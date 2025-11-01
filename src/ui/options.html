@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PixGuard Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f8fafc;
+        padding: 20px;
+        color: #222;
+      }
+      h1 {
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+      p {
+        font-size: 13px;
+        color: #666;
+      }
+      #dropZone {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        margin-top: 20px;
+        color: #555;
+        transition: border-color 0.3s;
+      }
+      #dropZone:hover {
+        border-color: #06b6d4;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 6px;
+        background: #fff;
+        border: 1px solid #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PixGuard Dashboard</h1>
+    <p>Verify your image’s watermark protection below.</p>
+
+    <div id="dropZone">Drag & drop an image here</div>
+
+    <div id="result"></div>
+
+    <script type="module">
+      import { extractDCTWatermark } from "../lib/dct.js";
+
+      const dropZone = document.getElementById("dropZone");
+      const result = document.getElementById("result");
+
+      dropZone.addEventListener("dragover", (e) => e.preventDefault());
+      dropZone.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const blob = new Blob([await file.arrayBuffer()]);
+        const img = await createImageBitmap(blob);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const bits = extractDCTWatermark(imgData, 8);
+        const confidence =
+          (bits.filter((b) => b === 1).length / bits.length) * 100;
+        result.innerHTML = `
+          <h3>✅ Verified PixGuard Image</h3>
+          <p>Confidence: <strong>${Math.round(confidence)}%</strong></p>
+          <p>Bits: ${bits.join("")}</p>
+        `;
+      });
+    </script>
+  </body>
+</html>
